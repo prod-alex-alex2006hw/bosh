@@ -3,7 +3,7 @@ require_relative '../../../../db_spec_helper'
 module Bosh::Director
   describe 'runtime configs migration' do
     let(:db) {DBSpecHelper.db}
-    let(:migration_file) {'20170823140659_migrate_runtime_configs.rb'}
+    let(:migration_file) {'20170908160659_migrate_runtime_configs.rb'}
     let(:some_time) do
       Time.at(Time.now.to_i).utc
     end

@@ -4,6 +4,7 @@ require 'rack/test'
 module Bosh::Director
   module Api
     describe Controllers::DeploymentsController do
+      include IpUtil
       include Rack::Test::Methods
 
       subject(:app) { described_class.new(config) }
@@ -759,7 +760,7 @@ module Bosh::Director
                 ip_addresses_params  = {
                   'instance_id' => instance.id,
                   'task_id' => "#{i}",
-                  'address' => NetAddr::CIDR.create("1.2.3.#{i}"),
+                  'address_str' => ip_to_i("1.2.3.#{i}").to_s,
                 }
                 Models::IpAddress.create(ip_addresses_params)
               end
@@ -850,7 +851,7 @@ module Bosh::Director
               15.times do |i|
                 jobs << {
                     'name' => "job-#{i}",
-                    'templates' => [{ 'name' => 'job_using_pkg_1' }],
+                    'spec' => {'templates' => [{'name' => 'job_using_pkg_1'}]},
                     'instances' => 1,
                     'resource_pool' => 'a',
                     'networks' => [{ 'name' => 'a' }]
@@ -943,7 +944,7 @@ module Bosh::Director
                   ip_addresses_params  = {
                     'instance_id' => instance.id,
                     'task_id' => "#{i}",
-                    'address' => NetAddr::CIDR.create("1.2.3.#{i}"),
+                    'address_str' => ip_to_i("1.2.3.#{i}").to_s,
                   }
                   Models::IpAddress.create(ip_addresses_params)
                 end
@@ -1345,7 +1346,7 @@ module Bosh::Director
                 release = Models::Release.make(name: 'bosh-release')
                 template1 = Models::Template.make(name: 'foobar', release: release)
                 template2 = Models::Template.make(name: 'errand1', release: release)
-                template3 = Models::Template.make(name: 'job_with_bin_run', release: release, templates: {'foo' => 'bin/run'})
+                template3 = Models::Template.make(name: 'job_with_bin_run', release: release, spec: {templates: {'foo' => 'bin/run'}})
                 release_version = Models::ReleaseVersion.make(version: '0.1-dev', release: release)
                 release_version.add_template(template1)
                 release_version.add_template(template2)

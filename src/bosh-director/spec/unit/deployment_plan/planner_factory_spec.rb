@@ -209,6 +209,32 @@ LOGMESSAGE
                   ]
                 )
               end
+
+              context 'with runtime variables' do
+                let(:runtime_config_hash) do
+                  Bosh::Spec::Deployments.simple_runtime_config.merge(
+                    'variables'=> [{
+                       'name' => '/dns_healthcheck_server_tlsX',
+                       'type' => 'certificate',
+                       'options' => {'is_ca' => true, 'common_name' => 'health.bosh-dns', 'extended_key_usage' => ['server_auth']}
+                     },
+                     {
+                       'name' => '/dns_healthcheck_tls',
+                       'type' => 'certificate',
+                       'options' => { 'ca' => '/dns_healthcheck_server_tlsX' }
+
+                     },
+                     {
+                       'name' => '/dns_healthcheck_password',
+                       'type' => 'password'
+                     }])
+                end
+                it 'has variables from runtime config' do
+                  expect(planner.variables.spec[0]).to eq(runtime_config_hash['variables'][0])
+                  expect(planner.variables.spec[1]).to eq(runtime_config_hash['variables'][1])
+                  expect(planner.variables.spec[2]).to eq(runtime_config_hash['variables'][2])
+                end
+              end
             end
 
             describe 'disk_pools' do
@@ -403,9 +429,9 @@ LOGMESSAGE
                     allow(DeploymentPlan::LinkPath).to receive(:new).and_return(skipped_link_path)
                     allow(skipped_link_path).to receive(:parse)
 
-                    templateModel = Models::Template.where(name: 'provides_template').first
-                    templateModel.properties = {"a" => {}}
-                    templateModel.save
+                    template_model = Models::Template.where(name: 'provides_template').first
+                    template_model.spec = template_model.spec.merge({properties: {"a" => {}}})
+                    template_model.save
 
                     planner
                   end
@@ -453,7 +479,7 @@ LOGMESSAGE
             job = hybrid_manifest_hash['jobs'].first
             release = Models::Release.make(name: release_entry['name'])
             template = Models::Template.make(name: job['templates'].first['name'], release: release)
-            template2 = Models::Template.make(name: 'provides_template', release: release, properties: {"a" => {default: "b"}})
+            template2 = Models::Template.make(name: 'provides_template', release: release, spec: {properties: {"a" => {default: "b"}}})
             release_version = Models::ReleaseVersion.make(release: release, version: release_entry['version'])
             release_version.add_template(template)
             release_version.add_template(template2)
