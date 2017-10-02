@@ -35,6 +35,8 @@ module Bosh
         end
 
         before do
+          # deployment_model = Models::Deployment.make(name: deployment_name)
+          # deployment_model.add_variable_set(:created_at => Time.now, :writable => true)
           allow(deployment_manifest_migrator).to receive(:migrate) { |deployment_manifest, cloud_config| [deployment_manifest, cloud_config] }
           allow(Bosh::Director::RuntimeConfig::RuntimeConfigsConsolidator).to receive(:new).with(runtime_config_models).and_return(runtime_config_consolidator)
           allow(runtime_config_consolidator).to receive(:interpolate_manifest_for_deployment).with('simple').and_return({})
@@ -118,13 +120,12 @@ LOGMESSAGE
           end
 
           context 'Planner.new' do
-            let(:deployment_model) { instance_double(Bosh::Director::Models::Deployment) }
+            let(:deployment_model) { Models::Deployment.make(name: 'simple') }
             let(:expected_attrs) { {:name=>"simple", :properties=>{}} }
             let(:expected_plan_options) { {"recreate"=>false, "fix"=>false, "skip_drain"=>nil, "job_states"=>{}, "max_in_flight"=>nil, "canaries"=>nil, "tags"=>{}} }
 
             before do
               allow(deployment_repo).to receive(:find_or_create_by_name).with(deployment_name, plan_options).and_return(deployment_model)
-              allow(deployment_model).to receive(:name).and_return(deployment_name)
               allow(runtime_config_consolidator).to receive(:runtime_configs).and_return(runtime_config_models)
             end
 

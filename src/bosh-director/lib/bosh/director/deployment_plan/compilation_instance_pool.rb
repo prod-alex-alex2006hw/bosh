@@ -136,17 +136,23 @@ module Bosh::Director
           vm_type = CompilationVmType.new(@deployment_plan.compilation.cloud_properties)
         end
 
+        vm_requirements = @deployment_plan.compilation.vm_requirements
         vm_extensions = @deployment_plan.compilation.vm_extensions
         env = Env.new(@deployment_plan.compilation.env)
 
-        compile_job = CompilationJob.new(vm_type, vm_extensions, stemcell, env, @deployment_plan.compilation.network_name, @logger)
+        compile_instance_group = CompilationInstanceGroup.new(vm_type, vm_requirements, vm_extensions, stemcell, env, @deployment_plan.compilation.network_name, @logger)
         availability_zone = @deployment_plan.compilation.availability_zone
-        instance = Instance.create_from_job(compile_job, 0, 'started', @deployment_plan.model, {}, availability_zone, @logger)
+        instance = Instance.create_from_instance_group(compile_instance_group, 0, 'started', @deployment_plan.model, {}, availability_zone, @logger)
         instance.bind_new_instance_model
+
+        if vm_requirements
+          vm_cloud_properties = @deployment_plan.vm_requirements_cache.get_vm_cloud_properties(instance.availability_zone, vm_requirements)
+          instance.update_vm_cloud_properties(vm_cloud_properties)
+        end
 
         compilation_network = @deployment_plan.network(@deployment_plan.compilation.network_name)
         reservation = DesiredNetworkReservation.new_dynamic(instance.model, compilation_network)
-        desired_instance = DeploymentPlan::DesiredInstance.new(compile_job, nil)
+        desired_instance = DeploymentPlan::DesiredInstance.new(compile_instance_group, nil)
         instance_plan = DeploymentPlan::InstancePlan.new(
           existing_instance: instance.model,
           instance: instance,
@@ -154,7 +160,7 @@ module Bosh::Director
           network_plans: [DeploymentPlan::NetworkPlanner::Plan.new(reservation: reservation)]
         )
 
-        compile_job.add_instance_plans([instance_plan])
+        compile_instance_group.add_instance_plans([instance_plan])
         instance_plan
       end
 
@@ -220,12 +226,13 @@ module Bosh::Director
       end
     end
 
-    class CompilationJob
-      attr_reader :vm_type, :vm_extensions, :stemcell, :env, :name
+    class CompilationInstanceGroup
+      attr_reader :vm_type, :vm_requirements, :vm_extensions, :stemcell, :env, :name
       attr_reader :instance_plans
 
-      def initialize(vm_type, vm_extensions, stemcell, env, compilation_network_name, logger)
+      def initialize(vm_type, vm_requirements, vm_extensions, stemcell, env, compilation_network_name, logger)
         @vm_type = vm_type
+        @vm_requirements = vm_requirements
         @vm_extensions = vm_extensions
         @stemcell = stemcell
         @env = env

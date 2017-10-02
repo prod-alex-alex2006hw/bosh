@@ -15,14 +15,14 @@ module Bosh::Director::DeploymentPlan
         'bosh1.tld',
       )
     end
-    let(:job) do
-      job = InstanceGroup.new(logger)
-      job.name = 'fake-job'
-      job
+    let(:instance_group) do
+      instance_group = InstanceGroup.new(logger)
+      instance_group.name = 'fake-job'
+      instance_group
     end
 
     let(:az) { AvailabilityZone.new('az-1', {'foo' => 'bar'}) }
-    let(:instance) { Instance.create_from_job(job, 3, 'started', plan, {}, az, logger) }
+    let(:instance) { Instance.create_from_instance_group(instance_group, 3, 'started', plan, {}, az, logger) }
     let(:reservations) {
       reservation = Bosh::Director::DesiredNetworkReservation.new_dynamic(instance.model, manual_network)
       reservation.resolve_ip('10.0.0.6')

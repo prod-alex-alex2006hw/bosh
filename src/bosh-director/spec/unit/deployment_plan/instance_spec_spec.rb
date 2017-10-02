@@ -58,13 +58,14 @@ module Bosh::Director::DeploymentPlan
         update_spec: {},
         properties: properties,
         lifecycle: lifecycle,
+        vm_requirements: nil,
       )
     end
     let(:index) { 0 }
     let(:instance_state) { {} }
     let(:desired_variable_set) { instance_double(Bosh::Director::Models::VariableSet) }
     let(:instance) {
-      instance = Instance.create_from_job(instance_group, index, 'started', plan, instance_state, availability_zone, logger)
+      instance = Instance.create_from_instance_group(instance_group, index, 'started', plan, instance_state, availability_zone, logger)
       instance.desired_variable_set = desired_variable_set
       instance
     }
@@ -270,7 +271,7 @@ module Bosh::Director::DeploymentPlan
           expect(spec['id']).to eq('uuid-1')
           expect(spec['az']).to eq('foo-az')
           expect(spec['bootstrap']).to eq(true)
-          expect(spec['resource_pool']).to eq('fake-vm-type')
+          # expect(spec['resource_pool']).to eq('fake-vm-type')
           expect(spec['address']).to eq('192.168.0.10')
           expect(spec['ip']).to eq('192.168.0.10')
         end
@@ -304,7 +305,7 @@ module Bosh::Director::DeploymentPlan
             expect(spec['id']).to eq('uuid-1')
             expect(spec['az']).to eq('foo-az')
             expect(spec['bootstrap']).to eq(true)
-            expect(spec['resource_pool']).to eq('fake-vm-type')
+            # expect(spec['resource_pool']).to eq('fake-vm-type')
             expect(spec['address']).to eq('uuid-1.fake-job.default.fake-deployment.bosh')
             expect(spec['ip']).to eq(nil)
           end
@@ -348,7 +349,7 @@ module Bosh::Director::DeploymentPlan
             expect(spec['id']).to eq('uuid-1')
             expect(spec['az']).to eq('foo-az')
             expect(spec['bootstrap']).to eq(true)
-            expect(spec['resource_pool']).to eq('fake-vm-type')
+            # expect(spec['resource_pool']).to eq('fake-vm-type')
             expect(spec['address']).to eq('uuid-1.fake-job.default.fake-deployment.bosh')
             expect(spec['ip']).to eq('192.0.2.19')
           end

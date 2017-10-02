@@ -24,10 +24,9 @@ pushd nginx-1.12.1
     --with-debug \
     --prefix=${BOSH_INSTALL_TARGET} \
     --with-pcre=../pcre-8.40 \
-    --add-module=../headers-more-nginx-module-0.30 \
-    --with-http_ssl_module \
-    --with-http_dav_module \
-    --add-module=../nginx-upload-module-2.2
+    --add-module=../nginx-upload-module-2.2 \
+    --with-ld-opt="-L/usr/local/opt/openssl/lib" \
+    --with-cc-opt="-I/usr/local/opt/openssl/include"
 
   make
   make install

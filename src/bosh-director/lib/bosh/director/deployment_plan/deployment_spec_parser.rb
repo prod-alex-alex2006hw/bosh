@@ -104,6 +104,15 @@ module Bosh::Director
           # get state specific for this job or all jobs
           state_overrides = @job_states.fetch(job_spec['name'], @job_states.fetch('*', {}))
           job_spec = job_spec.recursive_merge(state_overrides)
+
+          # This is mthe wrong place
+          # exactly one of vm_Type, vm , resource_pool needed. cant be empty
+          # if %w(vm_type resource_pool vm).one? { |key| !job_spec[key].nil? }
+          #   #   calculate_cloud_properties
+          # else
+          #   raise BD::DirectorError, 'One of resource_pool, vm_type, or vm block has to be present'
+          # end
+
           @deployment.add_instance_group(InstanceGroup.parse(@deployment, job_spec, @event_log, @logger, parse_options))
         end
       end

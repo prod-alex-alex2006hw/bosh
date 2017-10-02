@@ -47,6 +47,7 @@ module Bosh::Director
       DeploymentPlan::CompilationConfig.new(compilation_spec, {}, [])
     end
     let(:deployment_model) { Models::Deployment.make(name: 'mycloud') }
+    let(:vm_requirements_cache) { instance_double(Bosh::Director::DeploymentPlan::VmRequirementsCache) }
     let(:deployment_plan) do
       instance_double(Bosh::Director::DeploymentPlan::Planner,
         compilation: compilation_config,
@@ -55,6 +56,7 @@ module Bosh::Director
         ip_provider: ip_provider,
         recreate: false,
         template_blob_cache: template_blob_cache,
+        vm_requirements_cache: vm_requirements_cache
       )
     end
     let(:subnet) {instance_double('Bosh::Director::DeploymentPlan::ManualNetworkSubnet', range: NetAddr::CIDR.create('192.168.0.0/24'))}
@@ -187,6 +189,35 @@ module Bosh::Director
         expect(event_2.task).to eq("#{task_id}")
         expect(event_2.deployment).to eq('mycloud')
         expect(event_2.instance).to eq('compilation-deadbeef/instance-uuid-1')
+      end
+
+      context 'when vm_requirements are given' do
+
+        let(:compilation_config) do
+          compilation_spec = {
+            'workers' => n_workers,
+            'network' => 'a',
+            'vm' => {
+              'cpu' => 4,
+              'ram' => 2048,
+              'ephemeral_disk_size' => 100
+            }
+          }
+
+          DeploymentPlan::CompilationConfig.new(compilation_spec, {}, [])
+        end
+
+        it 'retrieves the vm requirements from the CPI/cache and populates the cloud properties' do
+          allow(SecureRandom).to receive(:uuid).and_return('deadbeef', 'instance-uuid-1', 'agent-id')
+          allow(deployment_plan.vm_requirements_cache)
+            .to receive(:get_vm_cloud_properties)
+            .and_return({'vm_requirements' => 'foo'})
+          allow(cloud).to receive(:create_vm) do |_, _, cloud_properties|
+            expect(cloud_properties['vm_requirements']).to eq('foo')
+          end
+
+          action
+        end
       end
 
       context 'when instance creation fails' do
@@ -330,6 +361,10 @@ module Bosh::Director
         end
       end
 
+      context 'when vm block is specified' do
+
+      end
+
       context 'when vm raises an Rpc timeout error' do
         it 'removes the vm from the reuser' do
           expect(instance_reuser).to receive(:remove_instance)
@@ -440,9 +475,9 @@ module Bosh::Director
     end
   end
 
-  describe DeploymentPlan::CompilationJob do
+  describe DeploymentPlan::CompilationInstanceGroup do
     it "has no 'lifecycle'" do
-      expect(DeploymentPlan::CompilationJob.new(nil, nil, nil, nil, nil, nil).lifecycle).to be_nil
+      expect(DeploymentPlan::CompilationInstanceGroup.new(nil, nil, nil, nil, nil, nil, nil).lifecycle).to be_nil
     end
   end
 end
