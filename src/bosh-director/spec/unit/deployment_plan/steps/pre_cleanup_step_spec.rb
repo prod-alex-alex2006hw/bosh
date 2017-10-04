@@ -18,7 +18,8 @@ module Bosh::Director
           instance_groups_starting_on_deploy: [],
           ip_provider: ip_provider,
           tags: {},
-	   all_obsolete: [existing_instance_plan]
+	   all_obsolete: [existing_instance_plan],
+          template_blob_cache: Bosh::Director::Core::Templates::TemplateBlobCache.new
         )
       end
 

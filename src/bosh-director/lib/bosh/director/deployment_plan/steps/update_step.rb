@@ -31,9 +31,9 @@ module Bosh::Director
           return @vm_creator if @vm_creator
           template_blob_cache = @deployment_plan.template_blob_cache
           agent_broadcaster = AgentBroadcaster.new
-          disk_manager = DiskManager.new(@logger)
           vm_deleter = Bosh::Director::VmDeleter.new(@logger, false, Config.enable_virtual_delete_vms)
           dns_encoder = LocalDnsEncoderManager.new_encoder_with_updated_index(@deployment_plan.availability_zones.map(&:name))
+          disk_manager = DiskManager.new(@logger, template_blob_cache, dns_encoder)
           @vm_creator = Bosh::Director::VmCreator.new(@logger, vm_deleter, disk_manager, template_blob_cache, dns_encoder, agent_broadcaster)
         end
 
