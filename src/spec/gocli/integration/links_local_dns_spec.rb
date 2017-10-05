@@ -8,7 +8,7 @@ describe 'Links with local_dns enabled', type: :integration do
   end
 
   let(:cloud_config) do
-    cloud_config_hash = Bosh::Spec::Deployments.simple_cloud_config
+    cloud_config_hash = Bosh::Spec::NewDeployments.simple_cloud_config
     cloud_config_hash['azs'] = [{ 'name' => 'z1' }]
     cloud_config_hash['networks'].first['subnets'].first['az'] = 'z1'
     cloud_config_hash['compilation']['az'] = 'z1'
@@ -30,7 +30,7 @@ describe 'Links with local_dns enabled', type: :integration do
   end
 
   let(:api_job_spec) do
-    job_spec = Bosh::Spec::Deployments.simple_job(
+    job_spec = Bosh::Spec::NewDeployments.simple_job(
       name: 'my_api',
       templates: [{'name' => 'api_server', 'consumes' => {
         'db' => {'from' => 'db'}
@@ -43,7 +43,7 @@ describe 'Links with local_dns enabled', type: :integration do
   end
 
   let(:mysql_job_spec) do
-    job_spec = Bosh::Spec::Deployments.simple_job(
+    job_spec = Bosh::Spec::NewDeployments.simple_job(
       name: 'mysql',
       templates: [{'name' => 'database'}],
       instances: 1,
@@ -57,7 +57,7 @@ describe 'Links with local_dns enabled', type: :integration do
   let(:provider_network_name) { 'manual-network' }
 
   let(:manifest) do
-    manifest = Bosh::Spec::Deployments.simple_manifest
+    manifest = Bosh::Spec::NewDeployments.simple_manifest_with_stemcell
     manifest['jobs'] = [api_job_spec, mysql_job_spec]
     manifest
   end
@@ -177,7 +177,7 @@ describe 'Links with local_dns enabled', type: :integration do
 
         context 'using link.address helper' do
           let(:job_link_overrided_spec) do
-            job_spec = Bosh::Spec::Deployments.simple_job(
+            job_spec = Bosh::Spec::NewDeployments.simple_job(
               name: 'my_api',
               templates: [
                 {
@@ -222,7 +222,7 @@ describe 'Links with local_dns enabled', type: :integration do
 
       context 'when having cross deployment links' do
         let(:mysql_job_spec) do
-          job_spec = Bosh::Spec::Deployments.simple_job(
+          job_spec = Bosh::Spec::NewDeployments.simple_job(
             name: 'mysql',
             templates: [
               {
@@ -244,7 +244,7 @@ describe 'Links with local_dns enabled', type: :integration do
         end
 
         let(:api_job_spec) do
-          job_spec = Bosh::Spec::Deployments.simple_job(
+          job_spec = Bosh::Spec::NewDeployments.simple_job(
             name: 'my_api',
             templates: [
               {
@@ -465,7 +465,7 @@ describe 'Links with local_dns enabled', type: :integration do
 
     context 'when having cross deployment links' do
       let(:mysql_job_spec) do
-        job_spec = Bosh::Spec::Deployments.simple_job(
+        job_spec = Bosh::Spec::NewDeployments.simple_job(
           name: 'mysql',
           templates: [
             {
@@ -487,7 +487,7 @@ describe 'Links with local_dns enabled', type: :integration do
       end
 
       let(:api_job_spec) do
-        job_spec = Bosh::Spec::Deployments.simple_job(
+        job_spec = Bosh::Spec::NewDeployments.simple_job(
           name: 'my_api',
           templates: [
             {
